@@ -1,0 +1,61 @@
+import React, { useState } from "react";
+import { encrypt, decrypt } from "../utils/encryption";
+import { useNavigate } from "react-router-dom";
+
+function ForgotPassword() {
+  const [email, setEmail] = useState("gaurangparante2299@gmail.com");
+  const navigate = useNavigate();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const encData = encrypt({
+      email: email,
+    });
+
+    try {
+      const res = await fetch(
+        "http://localhost:5001/api/auth/forgot-password",
+        {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            data: encData,
+          }),
+        }
+      );
+      const encrptedRes = await res.json();
+      const decreptedRes = decrypt(encrptedRes.data);
+      console.log("Responce", decreptedRes);
+
+      if (res.ok) {
+        console.log("OTP sent successfully:", decreptedRes);
+        localStorage.setItem("email", email);
+        navigate("/VerifyOTP");
+      } else {
+        console.log("Something Went Wrong:", decreptedRes);
+      }
+    } catch (error) {
+      console.log("Error:", error);
+    }
+  };
+  return (
+    <>
+      <div>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Enter Email ID"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <br />
+          <br />
+          <button type="submit">Submit</button>
+        </form>
+      </div>
+    </>
+  );
+}
+
+export default ForgotPassword;
